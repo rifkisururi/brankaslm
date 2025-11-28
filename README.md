@@ -4,13 +4,31 @@ Platform investasi emas digital yang terinspirasi dari BRANKAS Logam Mulia. Diba
 
 ## 🚀 Fitur Utama
 
+### Emas Digital
 - ✅ **Autentikasi** - Login dan register dengan NextAuth.js
 - ✅ **Dashboard** - Lihat saldo emas dan statistik investasi
-- ✅ **Beli Emas** - Beli emas digital dengan harga real-time
+- ✅ **Beli Emas Digital** - Beli emas digital dengan harga real-time
 - ✅ **Jual Emas (Buyback)** - Jual kembali emas digital Anda
 - ✅ **Riwayat Transaksi** - Lihat semua transaksi yang pernah dilakukan
 - ✅ **Business Hours Validation** - Transaksi hanya dapat dilakukan Senin-Sabtu, 09:00-15:00 WIB
-- 🔜 **Cetak Emas Fisik** - Cetak saldo digital menjadi emas fisik (coming soon)
+
+### Logam Mulia Fisik
+- ✅ **Marketplace** - Jual beli logam mulia fisik (ANTAM, UBS, PAMP Suisse, Lotus Archi)
+- ✅ **Berbagai Brand & Gramasi** - Pilihan produk dari berbagai brand terpercaya
+- ✅ **Pembelian Cash** - Beli logam mulia fisik secara tunai
+- ✅ **Sistem Cicilan** - Cicilan emas fisik dengan:
+  - Tenor minimal 1 tahun
+  - DP 20-50% (configurable)
+  - Biaya admin (configurable)
+  - Margin tahunan (configurable)
+  - Generate tabel angsuran otomatis
+  - User pilih tanggal pembayaran
+  - Sistem denda keterlambatan
+
+### Admin Features
+- ✅ **Admin Dashboard** - Kelola konfigurasi sistem
+- ✅ **Konfigurasi Cicilan** - Atur biaya admin, margin, dan denda
+- ✅ **Manajemen Produk** - Kelola produk logam mulia fisik
 
 ## 🛠 Tech Stack
 
@@ -68,10 +86,20 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ## 🗄 Database Schema
 
-- **User** - Data pengguna dan saldo emas
-- **Transaction** - Transaksi beli/jual emas
+### User Management
+- **User** - Data pengguna, saldo emas, dan role (USER/ADMIN)
+
+### Emas Digital
+- **Transaction** - Transaksi beli/jual emas digital
 - **GoldPrice** - Harga emas harian
-- **PhysicalPrint** - Request pencetakan emas fisik (coming soon)
+- **PhysicalPrint** - Request pencetakan emas fisik
+
+### Logam Mulia Fisik
+- **PhysicalProduct** - Katalog produk logam mulia (ANTAM, UBS, dll)
+- **PhysicalOrder** - Order pembelian produk fisik
+- **Installment** - Data cicilan pelanggan
+- **InstallmentPayment** - Jadwal pembayaran cicilan
+- **InstallmentConfig** - Konfigurasi sistem cicilan (admin)
 
 ## 🚀 Deploy ke Vercel
 
@@ -95,17 +123,33 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ## 🎯 Roadmap
 
-- [x] User authentication
+### Completed ✅
+- [x] User authentication & authorization
 - [x] Dashboard & portfolio
-- [x] Buy/Sell gold transactions
+- [x] Buy/Sell digital gold transactions
 - [x] Transaction history
 - [x] Real-time gold prices
 - [x] Business hours validation
-- [ ] Physical gold printing
+- [x] Marketplace logam mulia fisik
+- [x] Physical gold product catalog
+- [x] Installment system (cicilan)
+- [x] Payment schedule generation
+- [x] Late fee calculation
+- [x] Admin dashboard
+- [x] Installment configuration
+
+### In Progress 🚧
+- [ ] Product image management
+- [ ] Physical gold printing from digital balance
+- [ ] Order tracking & shipping
+
+### Planned 📋
+- [ ] Payment gateway integration (Midtrans, Xendit)
 - [ ] Email notifications
-- [ ] Payment gateway integration
-- [ ] Admin dashboard
-- [ ] Multi-language support
+- [ ] SMS notifications for payment reminders
+- [ ] Export reports (PDF/Excel)
+- [ ] Multi-language support (EN/ID)
+- [ ] Mobile app (React Native)
 
 ## 📄 License
 

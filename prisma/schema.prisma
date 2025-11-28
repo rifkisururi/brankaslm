@@ -17,14 +17,17 @@ model User {
   name          String
   phone         String?
   accountType   AccountType   @default(INDIVIDUAL)
+  role          UserRole      @default(USER)
   emailVerified Boolean       @default(false)
   password      String
   balance       Decimal       @default(0) @db.Decimal(10, 4) // in grams
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
-  transactions  Transaction[]
-  prints        PhysicalPrint[]
+  transactions     Transaction[]
+  prints           PhysicalPrint[]
+  physicalOrders   PhysicalOrder[]
+  installments     Installment[]
 
   @@index([email])
 }
@@ -32,6 +35,11 @@ model User {
 enum AccountType {
   INDIVIDUAL
   CORPORATE
+}
+
+enum UserRole {
+  USER
+  ADMIN
 }
 
 // Transactions
@@ -93,4 +101,154 @@ model GoldPrice {
   createdAt DateTime @default(now())
 
   @@index([date])
+}
+
+// Physical Products (ANTAM, UBS, dll)
+model PhysicalProduct {
+  id          String        @id @default(cuid())
+  name        String        // e.g. "Logam Mulia ANTAM 1 gram"
+  brand       ProductBrand  // ANTAM, UBS, dll
+  weight      Decimal       @db.Decimal(10, 4) // in grams
+  type        ProductType   // BAR, COIN
+  price       Decimal       @db.Decimal(15, 2) // IDR
+  stock       Int           @default(0)
+  imageUrl    String?
+  description String?
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  orders      PhysicalOrder[]
+
+  @@index([brand])
+  @@index([isActive])
+}
+
+enum ProductBrand {
+  ANTAM
+  UBS
+  PAMP_SUISSE
+  LOTUS_ARCHI
+  OTHER
+}
+
+enum ProductType {
+  BAR
+  COIN
+}
+
+// Physical Orders
+model PhysicalOrder {
+  id              String            @id @default(cuid())
+  userId          String
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId       String
+  product         PhysicalProduct   @relation(fields: [productId], references: [id])
+  quantity        Int
+  pricePerUnit    Decimal           @db.Decimal(15, 2)
+  totalPrice      Decimal           @db.Decimal(15, 2)
+  paymentType     PaymentType       // CASH or INSTALLMENT
+  status          OrderStatus       @default(PENDING)
+  shippingAddress String?
+  notes           String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  installment     Installment?
+
+  @@index([userId])
+  @@index([status])
+}
+
+enum PaymentType {
+  CASH
+  INSTALLMENT
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+// Installment Configuration (Admin Settings)
+model InstallmentConfig {
+  id              String    @id @default(cuid())
+  adminFee        Decimal   @db.Decimal(15, 2) // IDR
+  yearlyMargin    Decimal   @db.Decimal(5, 2)  // Percentage per year
+  lateFeePerDay   Decimal   @db.Decimal(15, 2) // IDR per day
+  minDpPercent    Decimal   @db.Decimal(5, 2)  @default(20) // 20%
+  maxDpPercent    Decimal   @db.Decimal(5, 2)  @default(50) // 50%
+  minTenorMonths  Int       @default(12) // 1 year
+  maxTenorMonths  Int       @default(36) // 3 years
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+// Installment Plans
+model Installment {
+  id                  String              @id @default(cuid())
+  userId              String
+  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderId             String              @unique
+  order               PhysicalOrder       @relation(fields: [orderId], references: [id])
+  totalAmount         Decimal             @db.Decimal(15, 2) // Total product price
+  dpAmount            Decimal             @db.Decimal(15, 2) // Down payment
+  dpPercent           Decimal             @db.Decimal(5, 2)  // DP percentage
+  adminFee            Decimal             @db.Decimal(15, 2)
+  margin              Decimal             @db.Decimal(15, 2) // Total margin
+  marginPercent       Decimal             @db.Decimal(5, 2)  // Yearly margin %
+  totalWithMargin     Decimal             @db.Decimal(15, 2) // Total after margin
+  monthlyPayment      Decimal             @db.Decimal(15, 2)
+  tenorMonths         Int                 // in months
+  paymentDate         Int                 // Day of month (1-31)
+  startDate           DateTime
+  endDate             DateTime
+  status              InstallmentStatus   @default(ACTIVE)
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  payments            InstallmentPayment[]
+
+  @@index([userId])
+  @@index([status])
+}
+
+enum InstallmentStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+  DEFAULTED
+  CANCELLED
+}
+
+// Installment Payments
+model InstallmentPayment {
+  id              String          @id @default(cuid())
+  installmentId   String
+  installment     Installment     @relation(fields: [installmentId], references: [id], onDelete: Cascade)
+  paymentNumber   Int             // 1, 2, 3, ... n
+  dueDate         DateTime
+  amount          Decimal         @db.Decimal(15, 2)
+  lateFee         Decimal         @default(0) @db.Decimal(15, 2)
+  paidAmount      Decimal         @default(0) @db.Decimal(15, 2)
+  paidAt          DateTime?
+  status          PaymentStatus   @default(UNPAID)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([installmentId])
+  @@index([status])
+  @@index([dueDate])
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  LATE
+  OVERDUE
 }

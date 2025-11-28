@@ -17,6 +17,7 @@ export async function GET() {
         id: true,
         name: true,
         email: true,
+        role: true,
         balance: true,
         accountType: true,
         createdAt: true,
@@ -40,6 +41,7 @@ export async function GET() {
       .reduce((sum, t) => sum + Number(t.totalPrice), 0)
 
     return NextResponse.json({
+      role: user.role,
       balance: Number(user.balance),
       totalTransactions: transactions.length,
       totalInvested,
