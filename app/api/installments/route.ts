@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/db"
+import type { Prisma } from "@prisma/client"
 import {
   calculateInstallment,
   generatePaymentSchedule,
@@ -125,7 +126,7 @@ export async function POST(request: Request) {
     )
 
     // Create installment and payments in transaction
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // Create installment
       const installment = await tx.installment.create({
         data: {
