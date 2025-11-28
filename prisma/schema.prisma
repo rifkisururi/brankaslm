@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Management
+model User {
+  id            String        @id @default(cuid())
+  email         String        @unique
+  name          String
+  phone         String?
+  accountType   AccountType   @default(INDIVIDUAL)
+  emailVerified Boolean       @default(false)
+  password      String
+  balance       Decimal       @default(0) @db.Decimal(10, 4) // in grams
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  transactions  Transaction[]
+  prints        PhysicalPrint[]
+
+  @@index([email])
+}
+
+enum AccountType {
+  INDIVIDUAL
+  CORPORATE
+}
+
+// Transactions
+model Transaction {
+  id          String          @id @default(cuid())
+  userId      String
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        TransactionType
+  amount      Decimal         @db.Decimal(10, 4) // gram
+  pricePerGram Decimal        @db.Decimal(15, 2) // IDR per gram
+  totalPrice  Decimal         @db.Decimal(15, 2) // IDR total
+  status      TransactionStatus @default(PENDING)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+enum TransactionType {
+  BUY
+  SELL
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+// Physical Gold Printing
+model PhysicalPrint {
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  weight      Decimal     @db.Decimal(10, 4) // in grams
+  printFee    Decimal     @db.Decimal(10, 2) // IDR
+  status      PrintStatus @default(REQUESTED)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([userId])
+}
+
+enum PrintStatus {
+  REQUESTED
+  PROCESSING
+  READY
+  DELIVERED
+}
+
+// Gold Prices
+model GoldPrice {
+  id        String   @id @default(cuid())
+  buyPrice  Decimal  @db.Decimal(15, 2) // IDR per gram
+  sellPrice Decimal  @db.Decimal(15, 2) // IDR per gram
+  date      DateTime @unique @default(now())
+  createdAt DateTime @default(now())
+
+  @@index([date])
+}
