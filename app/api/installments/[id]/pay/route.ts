@@ -86,7 +86,7 @@ export async function POST(
       where: { installmentId: payment.installmentId },
     })
 
-    const allPaid = allPayments.every((p) => p.status === "PAID")
+    const allPaid = allPayments.every((p: { status: string }) => p.status === "PAID")
 
     if (allPaid) {
       // Update installment status
